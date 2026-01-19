@@ -16,7 +16,7 @@ import { ResultRow } from 'components/ResultRow';
 import { SwitchCase } from 'components/common/SwitchCase';
 import { SavingsInput, SavingsProduct } from 'type';
 import { savingsProductsQuery } from 'apis/savingsProduct';
-import { formatMoney, formatDifference, extractDigits } from 'utils/money';
+import { formatMoney, formatDifference, extractNumber } from 'utils/format';
 import { isWithinAmountRange, matchesTerm } from 'utils/productFilter';
 import {
   calculateExpectedAmount,
@@ -40,12 +40,6 @@ export function SavingsCalculatorPage() {
     product => isWithinAmountRange(product, savingsInput.monthlyAmount) && matchesTerm(product, savingsInput.term)
   );
 
-  const updateField = <K extends keyof SavingsInput>(field: K, value: SavingsInput[K]) => {
-    setSavingsInput({ ...savingsInput, [field]: value });
-  };
-
-  const toMoneyValue = (input: string): number => Number(extractDigits(input)) || 0;
-
   return (
     <>
       <NavigationBar title="적금 계산기" />
@@ -57,7 +51,7 @@ export function SavingsCalculatorPage() {
         placeholder="목표 금액을 입력하세요"
         suffix="원"
         value={formatMoney(savingsInput.goalAmount)}
-        onChange={e => updateField('goalAmount', toMoneyValue(e.target.value))}
+        onChange={e => setSavingsInput({ ...savingsInput, goalAmount: extractNumber(e.target.value) })}
       />
       <Spacing size={16} />
       <TextField
@@ -65,14 +59,14 @@ export function SavingsCalculatorPage() {
         placeholder="희망 월 납입액을 입력하세요"
         suffix="원"
         value={formatMoney(savingsInput.monthlyAmount)}
-        onChange={e => updateField('monthlyAmount', toMoneyValue(e.target.value))}
+        onChange={e => setSavingsInput({ ...savingsInput, monthlyAmount: extractNumber(e.target.value) })}
       />
       <Spacing size={16} />
       <SelectBottomSheet
         label="저축 기간"
         title="저축 기간을 선택해주세요"
         value={savingsInput.term}
-        onChange={value => updateField('term', value)}
+        onChange={value => setSavingsInput({ ...savingsInput, term: value })}
       >
         <SelectBottomSheet.Option value={6}>6개월</SelectBottomSheet.Option>
         <SelectBottomSheet.Option value={12}>12개월</SelectBottomSheet.Option>

@@ -1,6 +1,6 @@
 import { colors, ListRow } from 'tosslib';
 import { SavingsProduct } from 'type';
-import { formatMoney } from 'utils/money';
+import { formatMoney } from 'utils/format';
 
 interface ProductInfoTextsProps {
   product: SavingsProduct;

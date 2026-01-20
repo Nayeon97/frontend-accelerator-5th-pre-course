@@ -86,20 +86,34 @@ export function SavingsCalculatorPage() {
       </Tab>
       <Spacing size={8} />
       {selectTab === 'products' &&
-        (!savingsInput.term || !savingsInput.monthlyAmount ? (
-          <ListRow contents={<ListRow.Texts type="1RowTypeA" top="먼저 저축 기간과 월 납입 금액을 입력해주세요." />} />
-        ) : filterMatchingProducts.length === 0 ? (
-          <ListRow contents={<ListRow.Texts type="1RowTypeA" top="입력한 조건에 맞는 상품이 없습니다." />} />
-        ) : (
-          filterMatchingProducts.map(product => (
-            <ListRow
-              key={product.id}
-              contents={<ProductInfoTexts product={product} />}
-              right={selectedSavingsProduct?.id === product.id ? <Assets.Icon name="icon-check-circle-green" /> : null}
-              onClick={() => setSelectedSavingsProduct(product)}
-            />
-          ))
-        ))}
+        (() => {
+          const hasNoInput = !savingsInput.term || !savingsInput.monthlyAmount;
+          const hasProducts = filterMatchingProducts.length > 0;
+
+          if (hasNoInput) {
+            return (
+              <ListRow
+                contents={<ListRow.Texts type="1RowTypeA" top="먼저 저축 기간과 월 납입 금액을 입력해주세요." />}
+              />
+            );
+          }
+
+          return hasProducts ? (
+            filterMatchingProducts.map(product => {
+              const isSelected = selectedSavingsProduct?.id === product.id;
+              return (
+                <ListRow
+                  key={product.id}
+                  contents={<ProductInfoTexts product={product} />}
+                  right={isSelected ? <Assets.Icon name="icon-check-circle-green" /> : null}
+                  onClick={() => setSelectedSavingsProduct(product)}
+                />
+              );
+            })
+          ) : (
+            <ListRow contents={<ListRow.Texts type="1RowTypeA" top="입력한 조건에 맞는 상품이 없습니다." />} />
+          );
+        })()}
       {selectTab === 'results' &&
         (selectedSavingsProduct ? (
           <>

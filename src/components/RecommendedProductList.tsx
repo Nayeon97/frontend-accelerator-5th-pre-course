@@ -1,4 +1,4 @@
-import { ListHeader, ListRow, Spacing } from 'tosslib';
+import { ListRow } from 'tosslib';
 import { ProductInfoTexts } from 'components/ProductInfoTexts';
 import { SavingsProduct } from 'type';
 
@@ -13,8 +13,6 @@ export function RecommendedProductList({ products }: RecommendedProductListProps
 
   return (
     <>
-      <ListHeader title={<ListHeader.TitleParagraph fontWeight="bold">추천 상품 목록</ListHeader.TitleParagraph>} />
-      <Spacing size={12} />
       {recommendedProducts.map(product => (
         <ListRow key={product.id} contents={<ProductInfoTexts product={product} />} />
       ))}

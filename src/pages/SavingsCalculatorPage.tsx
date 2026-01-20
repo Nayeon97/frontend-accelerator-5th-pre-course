@@ -13,7 +13,6 @@ import { useState } from 'react';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { ProductInfoTexts } from 'components/ProductInfoTexts';
 import { ResultRow } from 'components/ResultRow';
-import { SwitchCase } from 'components/common/SwitchCase';
 import { SavingsInput, SavingsProduct } from 'type';
 import { savingsProductsQuery } from 'apis/savingsProduct';
 import { formatMoney, formatDifference, extractNumber } from 'utils/format';
@@ -86,100 +85,73 @@ export function SavingsCalculatorPage() {
         </Tab.Item>
       </Tab>
       <Spacing size={8} />
-      {selectTab === 'products' && (
-        <SwitchCase
-          value={
-            !(savingsInput.term && savingsInput.monthlyAmount)
-              ? 'needsInput'
-              : filterMatchingProducts.length === 0
-                ? 'noProducts'
-                : 'hasProducts'
-          }
-          caseBy={{
-            needsInput: (
-              <ListRow
-                contents={<ListRow.Texts type="1RowTypeA" top="먼저 저축 기간과 월 납입 금액을 입력해주세요." />}
-              />
-            ),
-            noProducts: (
-              <ListRow contents={<ListRow.Texts type="1RowTypeA" top="입력한 조건에 맞는 상품이 없습니다." />} />
-            ),
-            hasProducts: (
-              <>
-                {filterMatchingProducts.map(product => {
-                  const isSelected = selectedSavingsProduct?.id === product.id;
+      {selectTab === 'products' &&
+        (!savingsInput.term || !savingsInput.monthlyAmount ? (
+          <ListRow contents={<ListRow.Texts type="1RowTypeA" top="먼저 저축 기간과 월 납입 금액을 입력해주세요." />} />
+        ) : filterMatchingProducts.length === 0 ? (
+          <ListRow contents={<ListRow.Texts type="1RowTypeA" top="입력한 조건에 맞는 상품이 없습니다." />} />
+        ) : (
+          filterMatchingProducts.map(product => (
+            <ListRow
+              key={product.id}
+              contents={<ProductInfoTexts product={product} />}
+              right={selectedSavingsProduct?.id === product.id ? <Assets.Icon name="icon-check-circle-green" /> : null}
+              onClick={() => setSelectedSavingsProduct(product)}
+            />
+          ))
+        ))}
+      {selectTab === 'results' &&
+        (selectedSavingsProduct ? (
+          <>
+            <ResultRow
+              label="예상 수익 금액"
+              displayValue={`${formatMoney(
+                Math.round(
+                  calculateExpectedAmount({
+                    monthlyAmount: savingsInput.monthlyAmount,
+                    term: savingsInput.term,
+                    annualRate: selectedSavingsProduct.annualRate,
+                  })
+                )
+              )}원`}
+            />
+            <ResultRow
+              label="목표 금액과의 차이"
+              displayValue={formatDifference(
+                calculateGoalDifference({
+                  goalAmount: savingsInput.goalAmount,
+                  expectedAmount: calculateExpectedAmount({
+                    monthlyAmount: savingsInput.monthlyAmount,
+                    term: savingsInput.term,
+                    annualRate: selectedSavingsProduct.annualRate,
+                  }),
+                })
+              )}
+            />
+            <ResultRow
+              label="추천 월 납입 금액"
+              displayValue={`${formatMoney(
+                calculateRecommendedMonthlyAmount({
+                  goalAmount: savingsInput.goalAmount,
+                  term: savingsInput.term,
+                  annualRate: selectedSavingsProduct.annualRate,
+                })
+              )}원`}
+            />
 
-                  return (
-                    <ListRow
-                      key={product.id}
-                      contents={<ProductInfoTexts product={product} />}
-                      right={isSelected ? <Assets.Icon name="icon-check-circle-green" /> : null}
-                      onClick={() => setSelectedSavingsProduct(product)}
-                    />
-                  );
-                })}
-              </>
-            ),
-          }}
-        />
-      )}
-      {selectTab === 'results' && (
-        <SwitchCase
-          value={selectedSavingsProduct ? 'hasProduct' : 'noProduct'}
-          caseBy={{
-            noProduct: <ListRow contents={<ListRow.Texts type="1RowTypeA" top="상품을 선택해주세요." />} />,
-            hasProduct: (
-              <>
-                <ResultRow
-                  label="예상 수익 금액"
-                  displayValue={`${formatMoney(
-                    Math.round(
-                      calculateExpectedAmount({
-                        monthlyAmount: savingsInput.monthlyAmount,
-                        term: savingsInput.term,
-                        annualRate: selectedSavingsProduct!.annualRate,
-                      })
-                    )
-                  )}원`}
-                />
-                <ResultRow
-                  label="목표 금액과의 차이"
-                  displayValue={formatDifference(
-                    calculateGoalDifference({
-                      goalAmount: savingsInput.goalAmount,
-                      expectedAmount: calculateExpectedAmount({
-                        monthlyAmount: savingsInput.monthlyAmount,
-                        term: savingsInput.term,
-                        annualRate: selectedSavingsProduct!.annualRate,
-                      }),
-                    })
-                  )}
-                />
-                <ResultRow
-                  label="추천 월 납입 금액"
-                  displayValue={`${formatMoney(
-                    calculateRecommendedMonthlyAmount({
-                      goalAmount: savingsInput.goalAmount,
-                      term: savingsInput.term,
-                      annualRate: selectedSavingsProduct!.annualRate,
-                    })
-                  )}원`}
-                />
+            <Spacing size={8} />
+            <Border height={16} />
+            <Spacing size={8} />
 
-                <Spacing size={8} />
-                <Border height={16} />
-                <Spacing size={8} />
-
-                <ListHeader
-                  title={<ListHeader.TitleParagraph fontWeight="bold">추천 상품 목록</ListHeader.TitleParagraph>}
-                />
-                <Spacing size={12} />
-                <RecommendedProductList products={savingsProducts} />
-              </>
-            ),
-          }}
-        />
-      )}
+            <ListHeader
+              title={<ListHeader.TitleParagraph fontWeight="bold">추천 상품 목록</ListHeader.TitleParagraph>}
+            />
+            <Spacing size={12} />
+            <RecommendedProductList products={savingsProducts} />
+          </>
+        ) : (
+          <ListRow contents={<ListRow.Texts type="1RowTypeA" top="상품을 선택해주세요." />} />
+        ))}
       <Spacing size={40} />
     </>
   );
